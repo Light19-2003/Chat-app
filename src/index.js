@@ -5,6 +5,10 @@ import dotenv from "dotenv";
 import authRoutes from "../src/routes/auth.routes.js";
 import MessageRoutes from "../src/routes/message.routes.js";
 
+// import Db from "../src/DB/Supa.db.js";
+
+import db from "../src/DB/Database.js";
+
 dotenv.config();
 
 const app = express();
@@ -21,5 +25,6 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log("Server is running on port 3000" + port);
+  console.log("Server is running on port " + port);
+  db();
 });
