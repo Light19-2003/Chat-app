@@ -1,6 +1,10 @@
 import supabase from "../DB/Supa.db.js";
+import { sendEmail } from "../emails/emailHandlers.js";
 import { generateToken } from "../lib/utils.js";
 import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const SignUp = async (req, res) => {
   const { fullname, password, email } = req.body;
@@ -76,6 +80,12 @@ export const SignUp = async (req, res) => {
         Profile_Image: user.Profile_Image,
       },
     });
+
+    try {
+      await sendEmail(email, fullname, process.env.CLIENT_URL);
+    } catch (error) {
+      console.log(error);
+    }
   } catch (error) {
     console.log(error);
 
@@ -83,6 +93,60 @@ export const SignUp = async (req, res) => {
       message: "Something went wrong",
     });
   }
+};
+
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const Finduser = CheckEmail(email);
+
+    if (!Finduser) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("UserModel")
+      .select("*")
+      .eq("Email", email)
+      .single();
+
+    if (error || !data) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
+
+    const ismatch = await bcrypt.compare(password, data.Password);
+
+    if (!ismatch) {
+      return res.status(400).json({
+        message: "Incorrect password",
+      });
+    }
+
+    generateToken(data.id, res);
+
+    return res.status(200).json({
+      message: "Login successful",
+      user: data,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  res.clearCookie("jwt");
+  return res.status(200).json({
+    message: "Logout successful",
+  });
 };
 
 const CheckEmail = async (email) => {
