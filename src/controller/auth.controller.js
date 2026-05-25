@@ -1,5 +1,6 @@
 import supabase from "../DB/Supa.db.js";
 import { sendEmail } from "../emails/emailHandlers.js";
+import cloud from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
@@ -147,6 +148,45 @@ export const logout = async (req, res) => {
   return res.status(200).json({
     message: "Logout successful",
   });
+};
+
+export const profileUpdate = async (req, res) => {
+  try {
+    const { profliepic } = req.body;
+
+    if (!profliepic) {
+      return res.status(400).json({
+        message: "Profile picture is required",
+      });
+    }
+
+    const userid = req.decoded.id;
+
+ const uploadres= await cloud.uploader.upload(profliepic)
+
+const {data,error} = await supabase.from("Usermodel").update({
+  Profile_Image:uploadres.secure_url, 
+
+}).eq("Id",userid)
+
+
+if(error){
+
+  console.log(error)
+
+  return res.status(400).json({
+    message: "Something went wrong",
+  });
+}
+else{
+  return res.status(200).json({
+    message: "Profile picture updated successfully",
+    data:data
+  });
+}
+
+
+  } catch (error) {}
 };
 
 const CheckEmail = async (email) => {
