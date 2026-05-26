@@ -6,8 +6,11 @@ import {
   SignUp,
 } from "../controller/auth.controller.js";
 import { authcheck } from "../middleware/uth.middleware.js";
+import { arcjectMiddleware } from "../middleware/arcject.middleware.js";
 
 const router = express.Router();
+
+router.use(arcjectMiddleware);
 
 router.post("/signup", SignUp);
 
